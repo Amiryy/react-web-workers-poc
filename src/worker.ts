@@ -18,7 +18,7 @@ export default () => {
     console.log('Message received from main script', e);
     if (e.data.type === 'getFirstData') {
       setTimeout(() => {
-        postMessage({ type: e.data.type, payload: { title: "Cool Data Title" } as FirstDataType });
+        postMessage({ type: e.data.type, payload: { title: "Cool Data" } as FirstDataType });
       }, 1500);
     }
     if (e.data.type === 'getSecondData') {

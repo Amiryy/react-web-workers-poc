@@ -45,10 +45,10 @@ function App() {
   }, []);
   
   return <div style={{ margin: "2rem auto", width: 400, display: "grid", gridAutoFlow: "row" }}>
-    <Progress percent={progress / requestsCount * 100} />
     <span>{requestsCount > 0 ? progress < requestsCount ? "Loading..." : "Done" : ""}</span>
-    <span>{firstData ? firstData.title : "..."}</span>
-    <span>{secondData ? secondData.name : "..."}</span>
+    <Progress percent={progress / requestsCount * 100} />
+    <span>Title: {firstData ? firstData.title : "..."}</span>
+    <span>Name: {secondData ? secondData.name : "..."}</span>
   </div>;
 }
 
