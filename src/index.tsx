@@ -1,37 +1,54 @@
-import React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { render } from 'react-dom';
 import { Progress } from 'antd';
 import 'antd/dist/antd.css';
+import { createWorker } from "./workerUtils";
+import workerInstance, { DataTypes, FirstDataType, SecondDataType, WorkerDataType } from "./worker";
 
-interface FirstDataType {
-  title: string
-}
-function App() {
-  const [data, setData] = useState<FirstDataType | undefined>(undefined);
-  const [progress, setProgress] = useState(0);
-  const [requestsCount, setRequestsCount] = useState(0);
-  const worker = useRef(new Worker('./worker.js'));
-  
-  function sendMessage(type: string) {
-    setRequestsCount(prev => prev + 1);
+
+function useWorker(onMessage: (event: MessageEvent<WorkerDataType>) => void) {
+  const worker = useRef(createWorker(workerInstance));
+  function sendMessage(type: keyof DataTypes) {
     worker.current.postMessage({ type });
-  }
-  function onMessage(event: MessageEvent<{ type: string, payload: FirstDataType }>) {
-    console.log(event.data);
-    if (event.data.type === 'getData') {
-      setProgress(prev => prev + 1);
-      setData(event.data.payload);
-    }
   }
   useEffect(() => {
     worker.current.onmessage = onMessage;
-    sendMessage('getData');
+  }, []);
+  return { sendMessage }
+}
+
+function App() {
+  const [firstData, setFirstData] = useState<FirstDataType | undefined>(undefined);
+  const [secondData, setSecondData] = useState<SecondDataType | undefined>(undefined);
+  const [progress, setProgress] = useState(0);
+  const [requestsCount, setRequestsCount] = useState(0);
+  
+  const { sendMessage } = useWorker(onMessage);
+  
+  function onMessage(event: MessageEvent<WorkerDataType>) {
+    console.log(event.data);
+    if (event.data.type === 'getFirstData') {
+      setFirstData(event.data.payload as FirstDataType);
+      setProgress(prev => prev + 1);
+    }
+    if (event.data.type === 'getSecondData') {
+      setSecondData(event.data.payload as SecondDataType);
+      setProgress(prev => prev + 1);
+    }
+  }
+  
+  useEffect(() => {
+    sendMessage('getFirstData');
+    sendMessage('getSecondData');
+    setRequestsCount(prev => prev + 2);
+  
   }, []);
   
-  return <div style={{ margin: "2rem auto", width: 400 }}>
+  return <div style={{ margin: "2rem auto", width: 400, display: "grid", gridAutoFlow: "row" }}>
     <Progress percent={progress / requestsCount * 100} />
-    <span>{data ? data.title : requestsCount > 0 ? "Loading..." : "No data"}</span>
+    <span>{requestsCount > 0 ? progress < requestsCount ? "Loading..." : "Done" : ""}</span>
+    <span>{firstData ? firstData.title : "..."}</span>
+    <span>{secondData ? secondData.name : "..."}</span>
   </div>;
 }
 
