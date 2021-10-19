@@ -6,7 +6,7 @@ onmessage = async function (e) {
         .then((response) => response.json())
         .then((json) => {
           console.log('Posting message back to main script', json);
-          postMessage(json);
+          postMessage({type: "getData", payload: json});
         });
     }, 3000);
   }
