@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createWorker } from "./workerUtils";
 
 export function useWorker<T extends { type: string }>(workerFn: Function) {
-  const worker = useRef(createWorker(workerFn));
+  const workerRef = useRef(createWorker(workerFn));
   const [requestsCount, setRequestsCount] = useState(0);
   const [progress, setProgress] = useState(0);
   const [errorsCount, setErrorsCount] = useState(0);
@@ -18,8 +18,12 @@ export function useWorker<T extends { type: string }>(workerFn: Function) {
   }
   
   function sendMessages(types: string[]) {
-    types.forEach(type => worker.current.postMessage({ type }));
-    setRequestsCount(prev => prev + types.length);
+    if(workerRef.current) {
+      for (const type of types) {
+        workerRef.current.postMessage({ type });
+      }
+      setRequestsCount(prev => prev + types.length);
+    }
   }
   
   function clearProccess(){
@@ -29,7 +33,9 @@ export function useWorker<T extends { type: string }>(workerFn: Function) {
   }
   
   useEffect(() => {
-    worker.current.onmessage = onMessage;
+    if(workerRef.current) {
+      workerRef.current.onmessage = onMessage;
+    }
   }, []);
   
   const totalProgress = progress + errorsCount;
