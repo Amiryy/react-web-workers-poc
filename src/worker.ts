@@ -1,30 +1,31 @@
-export interface DataTypes {
-  getFirstData: FirstDataType
-  getSecondData: SecondDataType
+export interface WorkerDataType {
+  type: string;
+  data: string;
 }
-export interface WorkerDataType<T extends keyof DataTypes = keyof DataTypes> {
-  type: T;
-  payload: DataTypes[T]
-}
-export interface FirstDataType {
-  title: string
-}
-export interface SecondDataType {
-  name: string
-}
-
 export default () => {
+  const titleData = { type: "title", data: "Cool Data" };
+  const nameData = { type: "name", data: "Amiryu" };
+  
+  function onError(error: unknown) {
+    console.error("Worker Error: ", error);
+    postMessage({ type: "my-worker-error", data: "null" })
+  }
+  
+  self.addEventListener("error", onError);
+  
   self.addEventListener("message", (e: MessageEvent<WorkerDataType>) => {
     console.log('Message received from main script', e);
-    if (e.data.type === 'getFirstData') {
-      setTimeout(() => {
-        postMessage({ type: e.data.type, payload: { title: "Cool Data" } as FirstDataType });
-      }, 1500);
-    }
-    if (e.data.type === 'getSecondData') {
-      setTimeout(() => {
-        postMessage({ type: e.data.type, payload: { name: "Amiryu" } as SecondDataType });
-      }, 3000);
+    try {
+      const response = [titleData, nameData].find(data => data.type === e.data.type);
+      if (response) {
+        setTimeout(() => {
+          postMessage(response);
+        }, Math.random() * 3000 + 1500);
+      } else {
+        postMessage({ type: e.data.type, data: "N/A" });
+      }
+    } catch (err) {
+      onError(err);
     }
   });
 };
