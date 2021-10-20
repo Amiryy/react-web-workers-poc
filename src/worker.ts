@@ -14,7 +14,7 @@ export default () => {
   self.addEventListener("error", onError);
   
   self.addEventListener("message", (e: MessageEvent<WorkerDataType>) => {
-    console.log('Message received from main script', e);
+    console.log('Worker: Message received from main script', e);
     try {
       const response = [titleData, nameData].find(data => data.type === e.data.type);
       if (response) {
